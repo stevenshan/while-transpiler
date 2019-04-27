@@ -31,3 +31,21 @@ binary_op  ::= "and" | "or"
 comparison_op ::= "<" | "<=" | "==" | ">" | ">=" | "!="
 arithmetic_op ::= "+" | "-" | "*" | "/" | "<<" | ">>" | "%"
 ```
+
+## Features
+
+### Token Stream
+
+Prints list of tokens and corresponding line numbers that were parsed from source code. Include the `--token-stream` flag.
+```
+python -m while_transpiler --token-stream file.w
+```
+
+
+### Parse Tree
+
+Print the parse tree for WHILE source code. Include the `--parse-tree` flag.
+```
+python -m while_transpiler --parse-tree file.w
+```
+

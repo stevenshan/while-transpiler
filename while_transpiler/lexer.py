@@ -26,9 +26,9 @@ def valid_string_char(c):
 def is_stop_char(c):
     return c in (" " , "\n", "\r", "\t")
 
-def get_symbol_stream(file_obj):
+def get_token_stream(file_obj):
     """
-    returns generator for stream of symbols read from IO object
+    returns generator for stream of tokens read from IO object
 
     :param file_obj: io-like object with read method
     :returns: generator that returns Token objects

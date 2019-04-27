@@ -1,37 +1,43 @@
 from .tokens import Tokens
+from .stack import Stack
 from .nonterminals import *
 
 class ParseError(Exception):
     pass
 
-def parse(symbol_stream):
-    parser = Parser(symbol_stream)
+def parse(token_stream):
+    parser = Parser(token_stream)
     parser.statement()
     if not parser.done:
         raise ParseError
 
+    return parser.nodes.peek()
+
 class Parser:
-    def __init__(self, symbol_stream):
-        self.symbol = None
-        self.symbol_stream = symbol_stream
+    def __init__(self, token_stream):
+        self.token = None
+        self.token_stream = token_stream
         self.nextsym()
         self.line_num = 1
 
+        self.nodes = Stack()
+        self.nodes.push(Program())
+
     @property
     def done(self):
-        return self.symbol is None
+        return self.token is None
 
     def nextsym(self):
         try:
-            self.line_num, self.symbol = next(self.symbol_stream)
+            self.line_num, self.token = next(self.token_stream)
         except StopIteration:
-            self.symbol = None
-        print("%d >> %s" % (self.line_num, self.symbol))
+            self.token = None
 
-    def accept(self, symbol):
-        if self.symbol is None:
+    def accept(self, token):
+        if self.token is None:
             return False
-        if self.symbol == symbol:
+        if self.token == token:
+            self.nodes.peek().components.append(self.token)
             self.nextsym()
             return True
         return False
@@ -39,30 +45,38 @@ class Parser:
     def raise_error(self):
         raise ParseError(self.line_num)
 
-    def expect(self, symbol):
-        if self.accept(symbol):
+    def expect(self, token):
+        if self.accept(token):
             return True
         self.raise_error()
 
-    def check_parse_error(func):
-        def _check(self, raise_error=True, propagate=True):
-            try:
-                result = func(self)
-            except ParseError as err:
-                if propagate:
-                    raise err
-                else:
-                    return False
-            else:
-                if result == False:
-                    if raise_error:
-                        self.raise_error()
+    def check_parse_error(node_cls):
+        def _decorator(func):
+            def _check(self, raise_error=True, propagate=True):
+                self.nodes.push(node_cls())
+                try:
+                    result = func(self)
+                except ParseError as err:
+                    self.nodes.pop()
+                    if propagate:
+                        raise err
                     else:
-                        return False
-                return True
-        return _check
+                        return None
+                else:
+                    last_node = self.nodes.pop()
+                    if result is None or result == False:
+                        if raise_error:
+                            self.raise_error()
+                        else:
+                            return None
 
-    @check_parse_error
+                    self.nodes.peek().components.append(last_node)
+                    return True
+
+            return _check
+        return _decorator
+
+    @check_parse_error(Block)
     def block(self):
         self.expect(Tokens.LEFT_CURLY_BRACE)
         if not self.accept(Tokens.RIGHT_CURLY_BRACE):
@@ -70,9 +84,11 @@ class Parser:
             self.expect(Tokens.RIGHT_CURLY_BRACE)
         else:
             pass
+        return True
 
-    @check_parse_error
+    @check_parse_error(Statement)
     def statement(self):
+        result = Statement()
         require_semicolon = True
         if self.accept(Tokens._Variable):
             self.expect(Tokens.ASSIGN)
@@ -108,7 +124,7 @@ class Parser:
 
         return True
 
-    @check_parse_error
+    @check_parse_error(Condition)
     def condition(self):
         if self.accept(Tokens.TRUE):
             pass
@@ -123,14 +139,14 @@ class Parser:
             self.comparison_op()
             self.expression()
         else:
-            return False
+            return None
 
         if self.binary_op(raise_error=False):
             self.condition()
 
         return True
 
-    @check_parse_error
+    @check_parse_error(Expression)
     def expression(self):
         if self.accept(Tokens._Variable):
             pass
@@ -140,19 +156,19 @@ class Parser:
             self.expression()
             self.expect(Tokens.RIGHT_PAREN)
         else:
-            return False
+            return None
 
         if self.arithmetic_op(raise_error=False):
             self.expression()
 
         return True
 
-    @check_parse_error
+    @check_parse_error(BinaryOp)
     def binary_op(self):
         return (self.accept(Tokens.AND) or
                 self.accept(Tokens.OR))
 
-    @check_parse_error
+    @check_parse_error(ComparisonOp)
     def comparison_op(self):
         return (self.accept(Tokens.LT) or
                 self.accept(Tokens.LEQ) or
@@ -161,7 +177,7 @@ class Parser:
                 self.accept(Tokens.GTE) or
                 self.accept(Tokens.NEQ))
 
-    @check_parse_error
+    @check_parse_error(ArithmeticOp)
     def arithmetic_op(self):
         return (self.accept(Tokens.PLUS) or
                 self.accept(Tokens.MINUS) or
