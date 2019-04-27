@@ -1,9 +1,27 @@
+"""
+Code to convert stream of Tokens first into a parse tree and then into an
+abstract syntax tree (AST)
+"""
+
 from .tokens import Tokens
 from .stack import Stack
-from .nonterminals import *
+from .nonterminals import Nonterminals
+from .ast import AST, ASTTokenMap
 
 class ParseError(Exception):
     pass
+
+class ParseResult:
+    def __init__(self, parser):
+        self.parser = parser
+
+    @property
+    def parse_tree(self):
+        return self.parser.nodes.peek()
+
+    @property
+    def ast(self):
+        return parse_tree_to_ast(self.parse_tree)
 
 def parse(token_stream):
     parser = Parser(token_stream)
@@ -11,9 +29,15 @@ def parse(token_stream):
     if not parser.done:
         raise ParseError
 
-    return parser.nodes.peek()
+    result = ParseResult(parser)
+
+    return result
 
 class Parser:
+    """
+    Generates parse tree for stream of tokens.
+    """
+
     def __init__(self, token_stream):
         self.token = None
         self.token_stream = token_stream
@@ -21,7 +45,7 @@ class Parser:
         self.line_num = 1
 
         self.nodes = Stack()
-        self.nodes.push(Program())
+        self.nodes.push(Nonterminals.Program())
 
     @property
     def done(self):
@@ -70,13 +94,14 @@ class Parser:
                         else:
                             return None
 
-                    self.nodes.peek().components.append(last_node)
+                    if len(last_node.components) > 0:
+                        self.nodes.peek().components.append(last_node)
                     return True
 
             return _check
         return _decorator
 
-    @check_parse_error(Block)
+    @check_parse_error(Nonterminals.Block)
     def block(self):
         self.expect(Tokens.LEFT_CURLY_BRACE)
         if not self.accept(Tokens.RIGHT_CURLY_BRACE):
@@ -86,9 +111,8 @@ class Parser:
             pass
         return True
 
-    @check_parse_error(Statement)
+    @check_parse_error(Nonterminals.Statement)
     def statement(self):
-        result = Statement()
         require_semicolon = True
         if self.accept(Tokens._Variable):
             self.expect(Tokens.ASSIGN)
@@ -124,7 +148,7 @@ class Parser:
 
         return True
 
-    @check_parse_error(Condition)
+    @check_parse_error(Nonterminals.Condition)
     def condition(self):
         if self.accept(Tokens.TRUE):
             pass
@@ -146,7 +170,7 @@ class Parser:
 
         return True
 
-    @check_parse_error(Expression)
+    @check_parse_error(Nonterminals.Expression)
     def expression(self):
         if self.accept(Tokens._Variable):
             pass
@@ -163,12 +187,12 @@ class Parser:
 
         return True
 
-    @check_parse_error(BinaryOp)
+    @check_parse_error(Nonterminals.BinaryOp)
     def binary_op(self):
         return (self.accept(Tokens.AND) or
                 self.accept(Tokens.OR))
 
-    @check_parse_error(ComparisonOp)
+    @check_parse_error(Nonterminals.ComparisonOp)
     def comparison_op(self):
         return (self.accept(Tokens.LT) or
                 self.accept(Tokens.LEQ) or
@@ -177,7 +201,7 @@ class Parser:
                 self.accept(Tokens.GTE) or
                 self.accept(Tokens.NEQ))
 
-    @check_parse_error(ArithmeticOp)
+    @check_parse_error(Nonterminals.ArithmeticOp)
     def arithmetic_op(self):
         return (self.accept(Tokens.PLUS) or
                 self.accept(Tokens.MINUS) or
@@ -186,4 +210,132 @@ class Parser:
                 self.accept(Tokens.SHL) or
                 self.accept(Tokens.SHR) or
                 self.accept(Tokens.MOD))
+
+def parse_tree_to_ast(parse_tree):
+    """
+    Returns abstract syntax tree (AST) from parse tree.
+    """
+    assert isinstance(parse_tree, Nonterminals.Program)
+    return _parse_tree_to_ast(parse_tree)
+
+def _parse_tree_to_ast(parse_tree, parent=None):
+    if isinstance(parse_tree, Nonterminals.Program):
+        statements = []
+        if len(parse_tree.components) > 0:
+            _parse_tree_to_ast(parse_tree.components[0], statements)
+        return AST.SEQUENCE(statements=statements)
+
+    if isinstance(parse_tree, Nonterminals.Block):
+        statements = []
+        _parse_tree_to_ast(parse_tree.components[1], statements)
+        return AST.SEQUENCE(statements=statements)
+
+    elif isinstance(parse_tree, Nonterminals.Statement):
+        result = None
+
+        if parse_tree.components[0] == Tokens._Variable:
+            result = AST.ASSIGN(
+                lhs = parse_tree.components[0],
+                rhs = _parse_tree_to_ast(parse_tree.components[2])
+            )
+
+        elif parse_tree.components[0] == Tokens.SKIP:
+            pass
+
+        elif parse_tree.components[0] == Tokens.IF:
+            if_false = False
+            if (len(parse_tree.components) >= 6 and
+                    parse_tree.components[5] == Tokens.ELSE):
+                if_false = _parse_tree_to_ast(parse_tree.components[6])
+
+            result = AST.IF(
+                condition = _parse_tree_to_ast(parse_tree.components[2]),
+                if_true = _parse_tree_to_ast(parse_tree.components[4]),
+                if_false = if_false
+            )
+
+        elif parse_tree.components[0] == Tokens.WHILE:
+            result = AST.WHILE(
+                condition = _parse_tree_to_ast(parse_tree.components[2]),
+                body = _parse_tree_to_ast(parse_tree.components[4]),
+            )
+
+        elif parse_tree.components[0] == Tokens.PRINT:
+            result = AST.PRINT(
+                expression = _parse_tree_to_ast(parse_tree.components[1])
+            )
+
+        elif parse_tree.components[0] == Tokens.BEGIN_COMMENT:
+            result = AST.PRINT(expression = parse_tree.components[1])
+
+        else:
+            raise ValueError
+
+        if result is not None:
+            parent.append(result)
+
+        if (len(parse_tree.components) > 2 and
+                parse_tree.components[-2] == Tokens.SEMICOLON):
+            _parse_tree_to_ast(parse_tree.components[-1], parent)
+
+    elif isinstance(parse_tree, Nonterminals.Condition):
+        result = None
+        if parse_tree.components[0] == Tokens.TRUE:
+            result = Tokens.TRUE
+
+        elif parse_tree.components[0] == Tokens.FALSE:
+            result = Tokens.FALSE
+
+        elif parse_tree.components[0] == Tokens.NOT:
+            result = AST.NOT(
+                condition = _parse_tree_to_ast(parse_tree.components[1])
+            )
+
+        elif parse_tree.components[0] == Tokens.LEFT_PAREN:
+            result = _parse_tree_to_ast(parse_tree.components[1])
+
+        elif isinstance(parse_tree.components[0], Nonterminals.Expression):
+            result = ASTTokenMap.comparison_op[parse_tree.components[1].v](
+                arg1 = _parse_tree_to_ast(parse_tree.components[0]),
+                arg2 = _parse_tree_to_ast(parse_tree.components[2]),
+            )
+
+        else:
+            raise ValueError
+
+        if (len(parse_tree.components) > 2 and
+                parse_tree.components[-2] == Nonterminals.BinaryOp):
+            result = ASTTokenMap.binary_op[parse_tree.components[-2].v](
+                arg1 = result,
+                arg2 = _parse_tree_to_ast(parse_tree.components[-1]),
+            )
+
+        return result
+
+    elif isinstance(parse_tree, Nonterminals.Expression):
+        result = None
+        if parse_tree.components[0] == Tokens._Variable:
+            result = parse_tree.components[0]
+
+        elif parse_tree.components[0] == Tokens._Number:
+            result = parse_tree.components[0]
+
+        elif parse_tree.components[0] == Tokens.LEFT_PAREN:
+            result = _parse_tree_to_ast(parse_tree.components[1])
+
+        else:
+            raise ValueError
+
+        if (len(parse_tree.components) > 2 and
+                parse_tree.components[-2] == Nonterminals.ArithmeticOp):
+            result = ASTTokenMap.arithmetic_op[parse_tree.components[-2].v](
+                arg1 = result,
+                arg2 = _parse_tree_to_ast(parse_tree.components[-1]),
+            )
+
+        return result
+
+    else:
+        raise ValueError
+
 

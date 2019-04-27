@@ -10,10 +10,10 @@ Block ::= "{" Statement "}"
 Statement ::= x "=" Expression
           |   "skip"
           |   Statement; Statement
-          |   "if" "(" Condition ")" Block "else" Block
-          |   "while" "(" Condition ")" Block
+          |   "if" "(" Condition ")" Block "else" Block Statement
+          |   "while" "(" Condition ")" Block Statement
           |   "print" Expression
-          |   "//" Comment
+          |   "//" Comment "\n" Statement
 
 Condition ::= "true"
           |   "false"

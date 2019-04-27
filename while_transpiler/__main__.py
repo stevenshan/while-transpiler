@@ -30,9 +30,9 @@ with open(args.file, "r") as file_obj:
         except StopIteration:
             exit(0)
 
-    parsed = parse(token_stream)
+    parse_result = parse(token_stream)
 
 if args.parse_tree:
-    parsed.print()
+    parse_result.parse_tree.print()
     exit(0)
 

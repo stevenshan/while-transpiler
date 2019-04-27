@@ -2,6 +2,10 @@ class _Node:
     def __init__(self):
         self.components = []
 
+    @property
+    def v(self):
+        return self.components[0]
+
     def __repr__(self):
         children = [(x.__class__.__name__ if isinstance(x, _Node) else x) for
                 x in self.components]
@@ -9,6 +13,9 @@ class _Node:
 
     def __str__(self):
         return f"{self.__class__.__name__}"
+
+    def __eq__(self, other):
+        return self.__class__ == other
 
     def print(self, indent_level=0):
         prefix = " " * 4 * indent_level
@@ -20,26 +27,27 @@ class _Node:
             else:
                 print(f"{prefix}{component}")
 
-class Program(_Node):
-    pass
+class Nonterminals:
+    class Program(_Node):
+        pass
 
-class Block(_Node):
-    pass
+    class Block(_Node):
+        pass
 
-class Statement(_Node):
-    pass
+    class Statement(_Node):
+        pass
 
-class Condition(_Node):
-    pass
+    class Condition(_Node):
+        pass
 
-class Expression(_Node):
-    pass
+    class Expression(_Node):
+        pass
 
-class BinaryOp(_Node):
-    pass
+    class BinaryOp(_Node):
+        pass
 
-class ComparisonOp(_Node):
-    pass
+    class ComparisonOp(_Node):
+        pass
 
-class ArithmeticOp(_Node):
-    pass
+    class ArithmeticOp(_Node):
+        pass
