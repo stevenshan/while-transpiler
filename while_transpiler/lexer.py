@@ -38,24 +38,29 @@ def get_symbol_stream(file_obj):
 
     rollover = False
     read_buffer = []
-    test = {"reads": 0}
+    line_num = 1
 
     def read_char():
         if len(read_buffer) == 0:
-            test["reads"] += 1
-            return file_obj.read(1)
+            c = file_obj.read(1)
+            _line_num = line_num
+            if c == "\n":
+                _line_num += 1
+            return _line_num, c
         else:
             return read_buffer.pop(0)
 
     def read_while(read_buffer, char_buffer, pred):
+        _line_num = line_num
         while True:
-            c = read_char()
+            temp_line_num, c = read_char()
+            _line_num += temp_line_num - line_num
             if c == "" or not pred(c):
                 break
 
             char_buffer.append(c)
 
-        return [c] + read_buffer
+        return _line_num, [(_line_num, c)] + read_buffer
 
     def maybe_implicit_token(string, token_class):
         token_reader.reset()
@@ -65,7 +70,7 @@ def get_symbol_stream(file_obj):
         return string
 
     while True:
-        c = read_char()
+        line_num, c = read_char()
 
         if c == "":
             break
@@ -76,55 +81,59 @@ def get_symbol_stream(file_obj):
         # read variable names
         if is_letter(c):
             char_buffer = [c]
-            read_buffer = read_while(
+            start_line_number = line_num
+            line_num, read_buffer = read_while(
                     read_buffer, char_buffer, valid_string_char)
 
-            yield maybe_implicit_token("".join(char_buffer), Tokens._Variable)
+            yield (
+                start_line_number,
+                maybe_implicit_token("".join(char_buffer), Tokens._Variable)
+            )
             continue
 
         # read numbers
         if is_digit(c):
             char_buffer = [c]
-            read_buffer = read_while(read_buffer, char_buffer, is_digit)
+            start_line_number = line_num
+            line_num, read_buffer = read_while(
+                    read_buffer, char_buffer, is_digit)
 
-            yield maybe_implicit_token("".join(char_buffer), Tokens._Number)
+            yield (
+                start_line_number,
+                maybe_implicit_token("".join(char_buffer), Tokens._Number)
+            )
             continue
 
         accepted_any = False
         token_reader.reset()
+        last_accepted_line = line_num
         while token_reader.add(c):
+            last_accepted_line = line_num
             accepted_any = True
-            c = read_char()
+            line_num, c = read_char()
             if c == "":
                 break
 
         if not accepted_any:
-            yield c
+            yield (line_num, c)
         else:
-            read_buffer = token_reader.unmatched + [c] + read_buffer
+            unmatched_buffer = [(last_accepted_line, x)
+                    for x in token_reader.unmatched]
+            read_buffer = (unmatched_buffer + [(line_num, c)] + read_buffer)
 
             result = token_reader.last_string
             if result == "":
                 continue
 
-            yield result
+            yield (last_accepted_line, result)
 
             if result == Tokens.BEGIN_COMMENT:
                 # read in rest of comment
                 char_buffer = []
-                last_two = ("", "")
-                while last_two[0] != "*" or last_two[1] != "/":
-                    c = read_char()
-                    char_buffer.append(c)
-                    if c == "":
-                        break
+                starting_line_num = line_num
+                line_num, read_buffer = read_while(
+                    read_buffer, char_buffer, lambda x: x != "\n")
 
-                    last_two = last_two[1], c
-
-
-                yield maybe_implicit_token(
-                    "".join(char_buffer[:-2]),
-                    Tokens._Comment
-                )
-                yield Tokens.END_COMMENT
+                yield (starting_line_num,
+                       Tokens._Comment("".join(char_buffer)))
 

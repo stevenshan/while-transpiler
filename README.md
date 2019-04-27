@@ -10,14 +10,15 @@ Block ::= "{" Statement "}"
 Statement ::= x "=" Expression
           |   "skip"
           |   Statement; Statement
-          |   "if" "(" Condition ")" Block "else" Block Statement
-          |   "while" "(" Condition ")" Block Statement
+          |   "if" "(" Condition ")" Block "else" Block
+          |   "while" "(" Condition ")" Block
           |   "print" Expression
-          |   /*Comment*/ Statement
+          |   "//" Comment
 
 Condition ::= "true"
           |   "false"
           |   "not" Condition
+          |   "(" Condition ")"
           |   Condition binary_op Condition
           |   Expression comparison_op Expression
 

@@ -37,8 +37,7 @@ class Tokens:
     LEFT_PAREN = "("
     RIGHT_PAREN = ")"
 
-    BEGIN_COMMENT = "/*"
-    END_COMMENT = "*/"
+    BEGIN_COMMENT = "//"
 
     TRUE = "true"
     FALSE = "false"
