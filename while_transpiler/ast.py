@@ -6,6 +6,34 @@ class ASTNode:
             assert hasattr(self.__class__, key)
             setattr(self, key, value)
 
+    def _fields(self):
+        parent_fields = dir(ASTNode)
+        fields = [x for x in dir(self.__class__)
+                if not x.startswith("_") and x not in parent_fields]
+        return ((field, getattr(self, field)) for field in fields)
+
+    def print(self, indent_level=0):
+        prefix = " " * 4 * indent_level
+        print(f"{self.__class__.__name__}")
+        prefix += " " * 4
+        for field, value in self._fields():
+            print(f"{prefix}{field}:", end=" ")
+            if isinstance(value, ASTNode):
+                value.print(indent_level+1)
+            else:
+                print(value)
+
+class ASTSymbol:
+    def __init__(self, parent_instance):
+        assert isinstance(parent_instance, self.parent_cls)
+        self.value = parent_instance.value
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.value}>"
+
 class BinOp(ASTNode):
     arg1 = None
     arg2 = None
@@ -15,8 +43,21 @@ class AST:
     Nodes in abstract syntax tree (AST)
     """
 
+    class Symbols:
+        class VARIABLE(ASTSymbol):
+            parent_cls = Tokens._Variable
+
+        class NUMBER(ASTSymbol):
+            parent_cls = Tokens._Number
+
+        class COMMENT(ASTSymbol):
+            parent_cls = Tokens._Comment
+
     class SEQUENCE(ASTNode):
         statements = None
+
+        def _fields(self):
+            return enumerate(self.statements)
 
     class ASSIGN(ASTNode):
         lhs = None

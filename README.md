@@ -32,20 +32,23 @@ comparison_op ::= "<" | "<=" | "==" | ">" | ">=" | "!="
 arithmetic_op ::= "+" | "-" | "*" | "/" | "<<" | ">>" | "%"
 ```
 
-## Features
+## Usage
 
-### Token Stream
-
-Prints list of tokens and corresponding line numbers that were parsed from source code. Include the `--token-stream` flag.
+To compile WHILE source code file named `test.w`:
 ```
-python -m while_transpiler --token-stream file.w
+python -m while_transpiler test.w
 ```
+The default output C source code file is `out.c`. This can be changed with the `-o` flag.
 
+### Output Options
 
-### Parse Tree
+Command line flag options to control the output:
 
-Print the parse tree for WHILE source code. Include the `--parse-tree` flag.
-```
-python -m while_transpiler --parse-tree file.w
-```
-
+- Token Stream
+    - `--token-stream`
+- Parse Tree
+    - `--parse-tree`
+- Abstract Syntax Tree (AST)
+    - `--ast`
+- Display transpiled C source code
+    - `--stdout`

@@ -6,7 +6,7 @@ class ImplicitToken:
         return self.__class__ == other
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} {self.value}>"
+        return f"<{self.__class__.__name__.strip('_')} {self.value}>"
 
 class Tokens:
     """
