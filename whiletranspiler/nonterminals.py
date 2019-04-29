@@ -2,7 +2,7 @@
 Definition of nodes in parse tree
 """
 
-from .utils import INDENT
+from .config import INDENT
 
 class _Node:
     def __init__(self):

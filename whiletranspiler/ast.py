@@ -3,7 +3,7 @@ Definition of nodes and symbols in abstract syntax tree (AST)
 """
 
 from .tokens import Tokens
-from .utils import INDENT
+from .config import INDENT
 
 class ASTNode:
     def __init__(self, **kwargs):

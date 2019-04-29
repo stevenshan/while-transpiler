@@ -3,7 +3,7 @@ Code for converting AST into C source code
 """
 
 from .ast import AST
-from .utils import INDENT
+from .config import INDENT
 
 BINOP_MAP = [
     (AST.AND, "&&"),

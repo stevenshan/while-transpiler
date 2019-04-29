@@ -32,6 +32,7 @@ binary_op  ::= "and" | "or"
 comparison_op ::= "<" | "<=" | "==" | ">" | ">=" | "!="
 arithmetic_op ::= "+" | "-" | "*" | "/" | "<<" | ">>" | "%"
 ```
+Note that all variables in WHILE have global scope.
 
 ## Usage
 
@@ -55,3 +56,7 @@ Command line flag options to control the output:
     - `--ast`
 - Display transpiled C source code
     - `--stdout`
+
+## Testing
+
+Run `pytest` to run test cases.

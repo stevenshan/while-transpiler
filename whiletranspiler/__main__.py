@@ -60,28 +60,14 @@ if args.stdout:
 
 
 if args.gcc or args.exec:
-    import os, sys
-    from .utils import FileLikeDescriptor
+    from .utils import c_compile, exec_file
 
     output_file = "a.out" if args.output is None else args.output
 
-    pid = os.fork()
-    if pid == 0: # child
-        rfd, wfd = os.pipe()
-        transpile_parsed(parse_result, FileLikeDescriptor(wfd))
-        os.dup2(rfd, sys.stdin.fileno())
+    status = c_compile(parse_result, output_file)
 
-        gcc_args = ["gcc", "-x", "c", "-o", output_file, "-"]
-
-        try:
-            os.execvp("gcc", gcc_args)
-        except FileNotFoundError:
-            print("Error: no gcc installation found.")
-            exit(1)
-    else: # parent
-        pid, status = os.waitpid(pid, 0)
-        if status == 0 and args.exec:
-            os.execvp(f"./{output_file}", [output_file])
+    if status == 0 and args.exec:
+        exec_file(f"./{output_file}")
 
 else:
     output_file = "out.c" if args.output is None else args.output
