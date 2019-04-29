@@ -208,6 +208,8 @@ class Parser:
             pass
         elif self.accept(Tokens._Number):
             pass
+        elif self.accept(Tokens.MINUS):
+            self.expression()
         elif self.accept(Tokens.LEFT_PAREN):
             self.expression()
             self.expect(Tokens.RIGHT_PAREN)
@@ -357,6 +359,12 @@ def _parse_tree_to_ast(parse_tree, parent=None):
 
         elif parse_tree.components[0] == Tokens.LEFT_PAREN:
             result = _parse_tree_to_ast(parse_tree.components[1])
+
+        elif parse_tree.components[0] == Tokens.MINUS:
+            result = ASTTokenMap.arithmetic_op[Tokens.TIMES](
+                arg1 = AST.Symbols.NUMBER(Tokens._Number("-1")),
+                arg2 = _parse_tree_to_ast(parse_tree.components[1])
+            )
 
         else:
             raise ValueError

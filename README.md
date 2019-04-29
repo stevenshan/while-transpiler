@@ -24,6 +24,7 @@ Condition ::= "true"
 
 Expression ::= x
            |   n
+           |   "-" Expression
            |   "(" Expression ")"
            |   Expression arithmetic_op Expression
 

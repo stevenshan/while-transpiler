@@ -1,5 +1,7 @@
 import os
 
+INDENT = "  "
+
 class FileLikeDescriptor:
     """
     file-like object with read method to make os file descriptor act like file

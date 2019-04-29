@@ -1,4 +1,9 @@
+"""
+Definition of nodes and symbols in abstract syntax tree (AST)
+"""
+
 from .tokens import Tokens
+from .utils import INDENT
 
 class ASTNode:
     def __init__(self, **kwargs):
@@ -13,9 +18,9 @@ class ASTNode:
         return ((field, getattr(self, field)) for field in fields)
 
     def print(self, indent_level=0):
-        prefix = " " * 4 * indent_level
+        prefix = INDENT * indent_level
         print(f"{self.__class__.__name__}")
-        prefix += " " * 4
+        prefix += INDENT
         for field, value in self._fields():
             print(f"{prefix}{field}:", end=" ")
             if isinstance(value, ASTNode):

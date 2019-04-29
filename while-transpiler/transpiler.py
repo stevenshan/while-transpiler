@@ -1,4 +1,9 @@
+"""
+Code for converting AST into C source code
+"""
+
 from .ast import AST
+from .utils import INDENT
 
 BINOP_MAP = [
     (AST.AND, "&&"),
@@ -17,8 +22,6 @@ BINOP_MAP = [
     (AST.SHR, ">>"),
     (AST.MOD, "%"),
 ]
-
-INDENT = "    "
 
 def transpile_parsed(parsed, file_obj):
     """

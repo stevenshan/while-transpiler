@@ -1,3 +1,9 @@
+"""
+Definition of nodes in parse tree
+"""
+
+from .utils import INDENT
+
 class _Node:
     def __init__(self):
         self.components = []
@@ -18,9 +24,9 @@ class _Node:
         return self.__class__ == other
 
     def print(self, indent_level=0):
-        prefix = " " * 4 * indent_level
+        prefix = INDENT * indent_level
         print(f"{prefix}{self}")
-        prefix += " " * 4
+        prefix += INDENT
         for component in self.components:
             if isinstance(component, _Node):
                 component.print(indent_level=indent_level + 1)

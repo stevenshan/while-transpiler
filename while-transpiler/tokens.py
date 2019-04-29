@@ -1,3 +1,7 @@
+"""
+Definition of tokens for lexer to parse character stream into
+"""
+
 class ImplicitToken:
     def __init__(self, value):
         self.value = value
@@ -9,10 +13,6 @@ class ImplicitToken:
         return f"<{self.__class__.__name__.strip('_')} {self.value}>"
 
 class Tokens:
-    """
-    Predefined tokens for lexer to parse character stream into
-    """
-
     class _Variable(ImplicitToken):
         pass
 
