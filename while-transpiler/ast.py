@@ -26,7 +26,16 @@ class ASTNode:
 class ASTSymbol:
     def __init__(self, parent_instance):
         assert isinstance(parent_instance, self.parent_cls)
-        self.value = parent_instance.value
+        if hasattr(parent_instance, "value"):
+            self.value = parent_instance.value
+        else:
+            self.value = parent_instance
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.value == other.value
+        else:
+            return self.value == other
 
     def __str__(self):
         return self.value
@@ -49,6 +58,9 @@ class AST:
 
         class NUMBER(ASTSymbol):
             parent_cls = Tokens._Number
+
+        class BOOLEAN(ASTSymbol):
+            parent_cls = str
 
         class COMMENT(ASTSymbol):
             parent_cls = Tokens._Comment
@@ -121,3 +133,6 @@ class ASTTokenMap:
         Tokens.SHR: AST.SHR,
         Tokens.MOD: AST.MOD,
     }
+
+AST.Symbols.BOOLEAN.true = AST.Symbols.BOOLEAN("true")
+AST.Symbols.BOOLEAN.false = AST.Symbols.BOOLEAN("false")

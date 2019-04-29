@@ -28,6 +28,9 @@ parser.add_argument('--stdout', action='store_true',
 parser.add_argument('--gcc', action='store_true',
                     help='Compiles transpiled C source code using gcc.')
 
+parser.add_argument('--exec', action='store_true',
+                    help='Execute compiled program. Implicitly enables --gcc flag.')
+
 args = parser.parse_args()
 
 with open(args.file, "r") as file_obj:
@@ -56,23 +59,31 @@ if args.stdout:
     exit(0)
 
 
-if args.gcc:
-    import os
+if args.gcc or args.exec:
+    import os, sys
+    from .utils import FileLikeDescriptor
+
+    output_file = "a.out" if args.output is None else args.output
 
     pid = os.fork()
     if pid == 0: # child
         rfd, wfd = os.pipe()
-
-        transpile_parsed(parse_result, wfd)
+        transpile_parsed(parse_result, FileLikeDescriptor(wfd))
         os.dup2(rfd, sys.stdin.fileno())
 
-        gcc_args = ["-x", "c"]
-        if args.output is not None:
-            gcc_args.extend(["-o", args.output])
-        os.execvp("gcc", gcc_args + ["-"])
-    else: # parent
+        gcc_args = ["gcc", "-x", "c", "-o", output_file, "-"]
 
-"""
-with open(args.output, "w") as file_obj:
-    transpile_parsed(parse_result, file_obj)
-"""
+        try:
+            os.execvp("gcc", gcc_args)
+        except FileNotFoundError:
+            print("Error: no gcc installation found.")
+            exit(1)
+    else: # parent
+        pid, status = os.waitpid(pid, 0)
+        if status == 0 and args.exec:
+            os.execvp(f"./{output_file}", [output_file])
+
+else:
+    output_file = "out.c" if args.output is None else args.output
+    with open(output_file, "w") as file_obj:
+        transpile_parsed(parse_result, file_obj)

@@ -36,9 +36,11 @@ arithmetic_op ::= "+" | "-" | "*" | "/" | "<<" | ">>" | "%"
 
 To compile WHILE source code file named `test.w`:
 ```
-python -m while_transpiler test.w
+python -m while-transpiler test.w
 ```
 The default output C source code file is `out.c`. This can be changed with the `-o` flag.
+
+To compile the transpiled C source code, include the `--gcc` flag. To execute the program, include the `--exec` flag.
 
 ### Output Options
 

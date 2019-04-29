@@ -80,10 +80,10 @@ def transpile_parsed(parsed, file_obj):
             write("}\n", begin_line=True)
 
         elif isinstance(ast_node, AST.PRINT):
-            write(f'printf("%d", ', begin_line=True)
+            write(f'printf("%d\\n", ', begin_line=True)
             options_closure.outer_paren_grouping = True
             generate_output(ast_node.expression)
-            write("\\n);\n")
+            write(");\n")
 
         elif isinstance(ast_node, AST.COMMENT):
             write(f"//{ast_node.string.value}\n", begin_line=True)
@@ -96,6 +96,14 @@ def transpile_parsed(parsed, file_obj):
                 isinstance(ast_node, AST.Symbols.NUMBER) or
                 isinstance(ast_node, AST.Symbols.COMMENT)):
             write(f"{ast_node}")
+
+        elif isinstance(ast_node, AST.Symbols.BOOLEAN):
+            if ast_node == AST.Symbols.BOOLEAN.true:
+                write("1");
+            elif ast_node == AST.Symbols.BOOLEAN.false:
+                write("0");
+            else:
+                raise ValueError("Unimplemented boolean value")
 
         else:
             found = False

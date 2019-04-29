@@ -316,10 +316,10 @@ def _parse_tree_to_ast(parse_tree, parent=None):
     elif isinstance(parse_tree, Nonterminals.Condition):
         result = None
         if parse_tree.components[0] == Tokens.TRUE:
-            result = Tokens.TRUE
+            result = AST.Symbols.BOOLEAN(parse_tree.components[0])
 
         elif parse_tree.components[0] == Tokens.FALSE:
-            result = Tokens.FALSE
+            result = AST.Symbols.BOOLEAN(parse_tree.components[0])
 
         elif parse_tree.components[0] == Tokens.NOT:
             result = AST.NOT(
