@@ -94,6 +94,8 @@ class RadixReader:
         self.last_match = self.original
         self.buff = ""
         self.unmatched = []
+        self.total = None
+        self._last_match = ""
 
     @classmethod
     def from_list(cls, L):
@@ -106,6 +108,12 @@ class RadixReader:
             success &= self._add(c)
         return success
 
+    def add_total(self, c):
+        if self.total is None:
+            self.total = c
+        else:
+            self.total += c
+
     def _add(self, c):
         if self.buff == self.root.value:
             for child in self.root.children:
@@ -114,9 +122,11 @@ class RadixReader:
                     self.buff = c
                     self.unmatched.append(c)
 
+                    self.add_total(c)
                     if self.buff == self.root.value and self.root.terminal:
                         self.unmatched = []
                         self.last_match = self.root
+                        self._last_match = self.total
 
                     return True
 
@@ -127,13 +137,15 @@ class RadixReader:
         if not self.root.value.startswith(self.buff):
             return False
 
+        self.add_total(c)
         if self.buff == self.root.value and self.root.terminal:
             self.unmatched = []
             self.last_match = self.root
+            self._last_match = self.total
 
         return True
 
     @property
     def last_string(self):
-        return self.last_match.string
+        return self._last_match
 

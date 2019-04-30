@@ -101,9 +101,9 @@ def transpile_parsed(parsed, file_obj):
             write(f"{ast_node}")
 
         elif isinstance(ast_node, AST.Symbols.BOOLEAN):
-            if ast_node == AST.Symbols.BOOLEAN.true:
+            if ast_node.value == "true":
                 write("1");
-            elif ast_node == AST.Symbols.BOOLEAN.false:
+            elif ast_node.value == "false":
                 write("0");
             else:
                 raise ValueError("Unimplemented boolean value")

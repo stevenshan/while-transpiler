@@ -1,4 +1,5 @@
-from .tokens import Tokens
+import types
+from .tokens import Tokens, TokenString
 from .radix import RadixReader
 
 TOKEN_LIST = [getattr(Tokens, x)
@@ -38,29 +39,35 @@ def get_token_stream(file_obj):
 
     rollover = False
     read_buffer = []
-    line_num = 1
+
+    closure = types.SimpleNamespace()
+    closure.line_num = 1
+    closure.char_num = 0
 
     def read_char():
         if len(read_buffer) == 0:
+            closure.char_num += 1
             c = file_obj.read(1)
-            _line_num = line_num
             if c == "\n":
-                _line_num += 1
-            return _line_num, c
+                closure.line_num += 1
+            token_str = TokenString(
+                c,
+                line_num=closure.line_num,
+                char_num=closure.char_num
+            )
+            return token_str
         else:
             return read_buffer.pop(0)
 
     def read_while(read_buffer, char_buffer, pred):
-        _line_num = line_num
         while True:
-            temp_line_num, c = read_char()
-            _line_num += temp_line_num - line_num
+            c = read_char()
             if c == "" or not pred(c):
                 break
 
             char_buffer.append(c)
 
-        return _line_num, [(_line_num, c)] + read_buffer
+        return [c] + read_buffer
 
     def maybe_implicit_token(string, token_class):
         token_reader.reset()
@@ -70,7 +77,7 @@ def get_token_stream(file_obj):
         return string
 
     while True:
-        line_num, c = read_char()
+        c = read_char()
 
         if c == "":
             break
@@ -81,59 +88,56 @@ def get_token_stream(file_obj):
         # read variable names
         if is_letter(c):
             char_buffer = [c]
-            start_line_number = line_num
-            line_num, read_buffer = read_while(
+            read_buffer = read_while(
                     read_buffer, char_buffer, valid_string_char)
 
             yield (
-                start_line_number,
-                maybe_implicit_token("".join(char_buffer), Tokens._Variable)
+                maybe_implicit_token(
+                    TokenString.join(char_buffer),
+                    Tokens._Variable
+                )
             )
             continue
 
         # read numbers
         if is_digit(c):
             char_buffer = [c]
-            start_line_number = line_num
-            line_num, read_buffer = read_while(
+            read_buffer = read_while(
                     read_buffer, char_buffer, is_digit)
 
             yield (
-                start_line_number,
-                maybe_implicit_token("".join(char_buffer), Tokens._Number)
+                maybe_implicit_token(
+                    TokenString.join(char_buffer),
+                    Tokens._Number
+                )
             )
             continue
 
         accepted_any = False
         token_reader.reset()
-        last_accepted_line = line_num
-        while token_reader.add(c):
-            last_accepted_line = line_num
+        while token_reader._add(c):
             accepted_any = True
-            line_num, c = read_char()
+            c = read_char()
             if c == "":
                 break
 
         if not accepted_any:
-            yield (line_num, c)
+            yield c
         else:
-            unmatched_buffer = [(last_accepted_line, x)
-                    for x in token_reader.unmatched]
-            read_buffer = (unmatched_buffer + [(line_num, c)] + read_buffer)
+            unmatched_buffer = [x for x in token_reader.unmatched]
+            read_buffer = (unmatched_buffer + [c] + read_buffer)
 
             result = token_reader.last_string
             if result == "":
                 continue
 
-            yield (last_accepted_line, result)
+            yield result
 
             if result == Tokens.BEGIN_COMMENT:
                 # read in rest of comment
                 char_buffer = []
-                starting_line_num = line_num
-                line_num, read_buffer = read_while(
+                read_buffer = read_while(
                     read_buffer, char_buffer, lambda x: x != "\n")
 
-                yield (starting_line_num,
-                       Tokens._Comment("".join(char_buffer)))
+                yield Tokens._Comment(TokenString.join(char_buffer))
 

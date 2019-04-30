@@ -2,11 +2,15 @@
 Definition of nodes and symbols in abstract syntax tree (AST)
 """
 
-from .tokens import Tokens
+from .shared import TokenMetadata
+from .tokens import Tokens, TokenString
 from .config import INDENT
 
-class ASTNode:
+class ASTNode(TokenMetadata):
     def __init__(self, **kwargs):
+        parent = kwargs.pop("parent")
+        self.set_metadata([parent])
+
         for key, value in kwargs.items():
             assert hasattr(self.__class__, key)
             setattr(self, key, value)
@@ -28,8 +32,10 @@ class ASTNode:
             else:
                 print(value)
 
-class ASTSymbol:
+class ASTSymbol(TokenMetadata):
     def __init__(self, parent_instance):
+        self.set_metadata([parent_instance])
+
         assert isinstance(parent_instance, self.parent_cls)
         if hasattr(parent_instance, "value"):
             self.value = parent_instance.value
@@ -65,13 +71,17 @@ class AST:
             parent_cls = Tokens._Number
 
         class BOOLEAN(ASTSymbol):
-            parent_cls = str
+            parent_cls = TokenString
 
         class COMMENT(ASTSymbol):
             parent_cls = Tokens._Comment
 
     class SEQUENCE(ASTNode):
         statements = None
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.set_metadata(self.statements)
 
         def _fields(self):
             return enumerate(self.statements)
@@ -138,6 +148,3 @@ class ASTTokenMap:
         Tokens.SHR: AST.SHR,
         Tokens.MOD: AST.MOD,
     }
-
-AST.Symbols.BOOLEAN.true = AST.Symbols.BOOLEAN("true")
-AST.Symbols.BOOLEAN.false = AST.Symbols.BOOLEAN("false")

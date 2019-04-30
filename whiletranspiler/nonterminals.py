@@ -3,14 +3,26 @@ Definition of nodes in parse tree
 """
 
 from .config import INDENT
+from .shared import TokenMetadata
 
-class _Node:
+class _Node(TokenMetadata):
+    force_merge_metadata = False
+
     def __init__(self):
         self.components = []
 
     @property
     def v(self):
         return self.components[0]
+
+    def add_component(self, component):
+        self.components.append(component)
+        if (self.force_merge_metadata or
+                not isinstance(component, Nonterminals.Statement)):
+            # statements are nested within the previous statement so we
+            # dont' want the metadata of the previous statement to include
+            # the next statement's metadata
+            self.merge_metadata([component])
 
     def __repr__(self):
         children = [(x.__class__.__name__ if isinstance(x, _Node) else x) for
@@ -35,7 +47,7 @@ class _Node:
 
 class Nonterminals:
     class Program(_Node):
-        pass
+        force_merge_metadata = True
 
     class Block(_Node):
         pass

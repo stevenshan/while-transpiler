@@ -45,7 +45,7 @@ def parse(token_stream):
         try:
             while True:
                 token_raw = next(token_stream)
-                _, token = token_raw
+                token = token_raw
 
                 if token == Tokens._Variable:
                     result.variable_names.add(token.value)
@@ -85,7 +85,8 @@ class Parser:
 
     def nextsym(self):
         try:
-            self.line_num, self.token = next(self.token_stream)
+            self.token = next(self.token_stream)
+            self.line_num = self.token.line_range[0]
         except StopIteration:
             self.token = None
 
@@ -93,7 +94,7 @@ class Parser:
         if self.token is None:
             return False
         if self.token == token:
-            self.nodes.peek().components.append(self.token)
+            self.nodes.peek().add_component(self.token)
             self.nextsym()
             return True
         return False
@@ -127,7 +128,7 @@ class Parser:
                             return None
 
                     if len(last_node.components) > 0:
-                        self.nodes.peek().components.append(last_node)
+                        self.nodes.peek().add_component(last_node)
                     return True
 
             return _check
@@ -257,13 +258,19 @@ def _parse_tree_to_ast(parse_tree, parent=None):
         statements = []
         if len(parse_tree.components) > 0:
             _parse_tree_to_ast(parse_tree.components[0], statements)
-        return AST.SEQUENCE(statements=statements)
+        return AST.SEQUENCE(
+            statements=statements,
+            parent=parse_tree,
+        )
 
     if isinstance(parse_tree, Nonterminals.Block):
         statements = []
         if len(parse_tree.components) > 2:
             _parse_tree_to_ast(parse_tree.components[1], statements)
-        return AST.SEQUENCE(statements=statements)
+        return AST.SEQUENCE(
+            statements=statements,
+            parent=parse_tree,
+        )
 
     elif isinstance(parse_tree, Nonterminals.Statement):
         result = None
@@ -271,7 +278,8 @@ def _parse_tree_to_ast(parse_tree, parent=None):
         if parse_tree.components[0] == Tokens._Variable:
             result = AST.ASSIGN(
                 lhs = _parse_tree_to_ast(parse_tree.components[0]),
-                rhs = _parse_tree_to_ast(parse_tree.components[2])
+                rhs = _parse_tree_to_ast(parse_tree.components[2]),
+                parent=parse_tree,
             )
 
         elif parse_tree.components[0] == Tokens.SKIP:
@@ -286,23 +294,27 @@ def _parse_tree_to_ast(parse_tree, parent=None):
             result = AST.IF(
                 condition = _parse_tree_to_ast(parse_tree.components[2]),
                 if_true = _parse_tree_to_ast(parse_tree.components[4]),
-                if_false = if_false
+                if_false = if_false,
+                parent = parse_tree,
             )
 
         elif parse_tree.components[0] == Tokens.WHILE:
             result = AST.WHILE(
                 condition = _parse_tree_to_ast(parse_tree.components[2]),
                 body = _parse_tree_to_ast(parse_tree.components[4]),
+                parent = parse_tree,
             )
 
         elif parse_tree.components[0] == Tokens.PRINT:
             result = AST.PRINT(
-                expression = _parse_tree_to_ast(parse_tree.components[1])
+                expression = _parse_tree_to_ast(parse_tree.components[1]),
+                parent = parse_tree,
             )
 
         elif parse_tree.components[0] == Tokens.BEGIN_COMMENT:
             result = AST.COMMENT(
-                string = _parse_tree_to_ast(parse_tree.components[1])
+                string = _parse_tree_to_ast(parse_tree.components[1]),
+                parent = parse_tree,
             )
 
         else:
@@ -325,7 +337,8 @@ def _parse_tree_to_ast(parse_tree, parent=None):
 
         elif parse_tree.components[0] == Tokens.NOT:
             result = AST.NOT(
-                condition = _parse_tree_to_ast(parse_tree.components[1])
+                condition = _parse_tree_to_ast(parse_tree.components[1]),
+                parent = parse_tree,
             )
 
         elif parse_tree.components[0] == Tokens.LEFT_PAREN:
@@ -335,6 +348,7 @@ def _parse_tree_to_ast(parse_tree, parent=None):
             result = ASTTokenMap.comparison_op[parse_tree.components[1].v](
                 arg1 = _parse_tree_to_ast(parse_tree.components[0]),
                 arg2 = _parse_tree_to_ast(parse_tree.components[2]),
+                parent = parse_tree,
             )
 
         else:
@@ -345,6 +359,7 @@ def _parse_tree_to_ast(parse_tree, parent=None):
             result = ASTTokenMap.binary_op[parse_tree.components[-2].v](
                 arg1 = result,
                 arg2 = _parse_tree_to_ast(parse_tree.components[-1]),
+                parent = parse_tree,
             )
 
         return result
@@ -363,7 +378,8 @@ def _parse_tree_to_ast(parse_tree, parent=None):
         elif parse_tree.components[0] == Tokens.MINUS:
             result = ASTTokenMap.arithmetic_op[Tokens.TIMES](
                 arg1 = AST.Symbols.NUMBER(Tokens._Number("-1")),
-                arg2 = _parse_tree_to_ast(parse_tree.components[1])
+                arg2 = _parse_tree_to_ast(parse_tree.components[1]),
+                parent = parse_tree,
             )
 
         else:
@@ -374,6 +390,7 @@ def _parse_tree_to_ast(parse_tree, parent=None):
             result = ASTTokenMap.arithmetic_op[parse_tree.components[-2].v](
                 arg1 = result,
                 arg2 = _parse_tree_to_ast(parse_tree.components[-1]),
+                parent = parse_tree,
             )
 
         return result
