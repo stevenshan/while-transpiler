@@ -11,7 +11,7 @@ TEST_INVALID_PROGRAMS = "test_invalid_programs"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR + '/../')
 
-from whiletranspiler import lexer, parser, utils
+from whiletranspiler.transpiler import lexer, parser, utils
 
 test_programs = [x for x in os.listdir(os.path.join(BASE_DIR, TEST_PROGRAMS))
         if x[-7:] != ".answer" and x[-2:] == ".w"]

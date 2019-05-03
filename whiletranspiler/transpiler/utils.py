@@ -1,7 +1,7 @@
 import os
 import sys
 import subprocess
-from .transpiler import transpile_parsed
+from .transpile_c import transpile_parsed
 
 def c_compile(parse_result, output_file):
     """
