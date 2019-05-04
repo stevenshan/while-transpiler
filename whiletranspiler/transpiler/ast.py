@@ -21,16 +21,33 @@ class ASTNode(TokenMetadata):
                 if not x.startswith("_") and x not in parent_fields]
         return ((field, getattr(self, field)) for field in fields)
 
-    def print(self, indent_level=0):
+    def print(self, indent_level=0, return_str=False):
         prefix = INDENT * indent_level
-        print(f"{self.__class__.__name__}")
+        acc = ""
+        string = f"{self.__class__.__name__}"
+        if return_str:
+            acc += f"{string}\n"
+        else:
+            print(string)
         prefix += INDENT
         for field, value in self._fields():
-            print(f"{prefix}{field}:", end=" ")
-            if isinstance(value, ASTNode):
-                value.print(indent_level+1)
+            string = f"{prefix}{field}: "
+            if return_str:
+                acc += string
             else:
-                print(value)
+                print(string, end="")
+            if isinstance(value, ASTNode):
+                temp = value.print(indent_level+1, return_str=return_str)
+                if return_str:
+                    acc += f"{temp}"
+            else:
+                if return_str:
+                    acc += f"{value}\n"
+                else:
+                    print(value)
+
+        if return_str:
+            return acc
 
 class ASTSymbol(TokenMetadata):
     def __init__(self, parent_instance):

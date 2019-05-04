@@ -35,15 +35,32 @@ class _Node(TokenMetadata):
     def __eq__(self, other):
         return self.__class__ == other
 
-    def print(self, indent_level=0):
+    def print(self, indent_level=0, return_str=False):
         prefix = INDENT * indent_level
-        print(f"{prefix}{self}")
+        acc = ""
+        string = f"{prefix}{self}"
+        if return_str:
+            acc += f"{string}\n"
+        else:
+            print(string)
         prefix += INDENT
         for component in self.components:
             if isinstance(component, _Node):
-                component.print(indent_level=indent_level + 1)
+                temp = component.print(
+                    indent_level=indent_level + 1,
+                    return_str=return_str
+                )
+                if return_str:
+                    acc += f"{temp}"
             else:
-                print(f"{prefix}{component}")
+                string = f"{prefix}{component}"
+                if return_str:
+                    acc += f"{string}\n"
+                else:
+                    print(string)
+
+        if return_str:
+            return acc
 
 class Nonterminals:
     class Program(_Node):

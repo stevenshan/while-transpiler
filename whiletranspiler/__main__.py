@@ -6,6 +6,7 @@ from .transpiler import (
     utils as transpiler_utils,
 )
 from . import web_client
+import sys
 
 def main():
     argparser = argparse.ArgumentParser(
@@ -74,11 +75,9 @@ def main():
         exit(0)
 
     if args.stdout:
-        import sys
         transpile_c.transpile_parsed(parse_result, sys.stdout)
         print()
         exit(0)
-
 
     if args.gcc or args.exec:
         output_file = "a.out" if args.output is None else args.output

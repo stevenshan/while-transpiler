@@ -1,7 +1,7 @@
 import socketio
 import os
 from whiletranspiler import transpiler
-from .utils import StdoutCapture
+import io
 import sys
 
 sio = socketio.Server(async_mode='threading')
@@ -126,18 +126,14 @@ def run(sid, data=None):
                     "error": False,
                 })
 
-            capture = StdoutCapture()
-            with capture as capturer:
-                parse_result.ast.print()
-            success("transpiler_ast", {"text": capture.out})
+            ast_string = parse_result.ast.print(return_str=True)
+            success("transpiler_ast", {"text": ast_string})
 
-            capture = StdoutCapture()
-            with capture as capturer:
-                transpiler.transpile_c.transpile_parsed(
-                        parse_result, sys.stdout)
-            success("transpiler_c_code", {"text": capture.out})
+            c_source_buffer = io.StringIO()
+            transpiler.transpile_c.transpile_parsed(
+                    parse_result, c_source_buffer)
+            success("transpiler_c_code", {"text": c_source_buffer.getvalue()})
 
-    except Exception as e:
-        print(e)
+    except:
         error()
 

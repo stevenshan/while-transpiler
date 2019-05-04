@@ -226,7 +226,6 @@ $(function() {
       }
 
       error_line -= 1;
-      console.log(error_line);
 
       var marker = editor.session.addMarker(
           new ace.Range(error_line, 0, error_line, 1),
