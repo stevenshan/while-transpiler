@@ -5,6 +5,10 @@ body, html {
     height: 100%;
 }
 
+.progress {
+    margin: 8px 0px;
+}
+
 .row {
     margin-bottom: 0px;
 }
@@ -110,17 +114,47 @@ main > .row > .col:first-child {
     line-height: 48px;
     display: inline;
     cursor: pointer;
+    margin-right: 5px;
+    position: relative;
+    color: #33aeea;
+}
+
+#editor-menu a:hover {
+    color: #039be5;
+}
+
+#editor-menu a:before {
+    content: "";
+    position: absolute;
+    display: block;
+    background: rgb(0, 0, 0, 0.1);
+    border-radius: 50%;
+    width: 130%;
+    height: 130%;
+    top: -15%;
+    left: -15%;
+    z-index: -1;
+    transform: scale(0);
+    transition: transform 0.1s;
+}
+
+#editor-menu a:hover:before {
+    transform: scale(1);
 }
 
 .code-editor {
     height: 100%;
-    font-size: 16px;
+    font-size: 17px;
 }
 
 #results-tabs {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+}
+
+#results-tabs .tab-body.staging {
+    opacity: 0.6;
 }
 
 #results-tabs .tab-content {
@@ -140,6 +174,7 @@ main > .row > .col:first-child {
 }
 
 #results-tabs .tab-content.loading .progress {
+    z-index: 5;
     display: block;
 }
 
@@ -165,5 +200,30 @@ main > .row > .col:first-child {
     right: 0px;
     z-index: 1;
     margin: auto;
+}
+
+#execution-modal .progress {
+    display: none;
+}
+
+#execution-modal.loading .progress {
+    display: block;
+}
+
+#execution-modal .execution-message {
+    margin-top: 15px;
+    font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    font-size: 16px;
+    padding-left: 10px;
+    border-left: 4px solid #999999;
+}
+
+#execution-modal .execution-message:first-child {
+    margin-top: 0px;
+}
+
+#execution-modal .execution-message pre {
+    white-space: pre-wrap;
+    font-size: 15px;
 }
 

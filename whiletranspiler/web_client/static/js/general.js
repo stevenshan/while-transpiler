@@ -3,6 +3,7 @@ $(function() {
   var default_filename = "Untitled file";
 
   var parse_req_id = undefined;
+  var save_callbacks = [];
 
   const socket = io(window.location.href);
 
@@ -55,9 +56,17 @@ $(function() {
     exec: function() { save(); },
   });
 
+  editor.session.on('change', function() {
+    $("#results-tabs .tab-body").addClass("staging");
+  });
+
   var last_used_filename = undefined;
   var current_filename = undefined;
   function change_filename(new_name) {
+    if (new_name === undefined || new_name === null) {
+      return;
+    }
+
     new_name = $.trim(new_name);
     if (new_name == "") {
       new_name = default_filename;
@@ -77,11 +86,13 @@ $(function() {
     socket.emit("loadfile", current_filename);
   }
 
-  function run_transpiler() {
+  function run_transpiler(execute) {
+    execute = execute || false;
     parse_req_id = random_id();
-    socket.emit("run", {
+    socket.emit("build", {
       filename: current_filename,
       req_id: parse_req_id,
+      execute: execute,
     });
     $("#results-tabs .tab-content").addClass("loading");
   }
@@ -123,8 +134,18 @@ $(function() {
       text: editor.getValue(),
       filename: current_filename,
     });
-    run_transpiler();
+    save_callbacks.push(run_transpiler);
   };
+
+  window.execute = function() {
+    socket.emit("save", {
+      text: editor.getValue(),
+      filename: current_filename,
+    });
+    save_callbacks.push(function() {
+      run_transpiler(true);
+    });
+  }
 
   socket.on("filelisting", function(e) {
     $("#fileselect-modal .progress").css("display", "none");
@@ -140,8 +161,8 @@ $(function() {
   socket.on("filedata", function(data) {
     if (data.error === true && data.reason === "unopenable") {
       M.toast({html: "Cannot open this file."});
-      if (current_filename !== default_filename) {
-        change_filename(default_filename);
+      if (last_used_filename !== default_filename) {
+        change_filename(last_used_filename);
       }
       return;
     }
@@ -166,6 +187,9 @@ $(function() {
     } else {
       // no error
     }
+    while (save_callbacks.length > 0) {
+      save_callbacks.pop()();
+    }
   });
 
   socket.on("transpiler_c_code", function(data) {
@@ -173,13 +197,17 @@ $(function() {
       return;
     }
 
-    $("#c-code-tab")
+    var $tab = $("#c-code-tab");
+
+    $tab
       .removeClass("loading")
       .toggleClass("error", data.error);
 
     if (!data.error) {
       set_editor_value(c_code_editor, data.text || "");
     }
+
+    $tab.find(".tab-body").removeClass("staging");
 
   });
 
@@ -188,13 +216,17 @@ $(function() {
       return;
     }
 
-    $("#ast-tab")
+    var $tab = $("#ast-tab");
+
+    $tab
       .removeClass("loading")
       .toggleClass("error", data.error);
 
     if (!data.error) {
       set_editor_value(ast_editor, data.text || "");
     }
+
+    $tab.find(".tab-body").removeClass("staging");
 
   });
 
@@ -203,13 +235,17 @@ $(function() {
       return;
     }
 
-    $("#tokens-tab")
+    var $tab = $("#tokens-tab");
+
+    $tab
       .removeClass("loading")
       .toggleClass("error", data.error);
 
     if (!data.error) {
       set_editor_value(tokens_editor, data.text || "");
     }
+
+    $tab.find(".tab-body").removeClass("staging");
 
   });
 
@@ -232,6 +268,34 @@ $(function() {
 
       editor_highlight_marker = marker;
     }
+  });
+
+  $("#execution-modal").modal();
+  var execution_modal = M.Modal.getInstance($("#execution-modal"));
+
+  socket.on("execution", function(data) {
+    if (parse_req_id !== data.req_id) {
+      return;
+    }
+
+    if (!execution_modal.isOpen) {
+      execution_modal.open();
+    }
+
+    var $content = $("#execution-modal-content");
+
+    if (data.signal === "start") {
+      $content.empty();
+    }
+
+    $("#execution-modal").toggleClass("loading", data.signal !== "end");
+
+    if (data.message !== undefined && data.message != "") {
+      $content.append($(
+        '<div class="execution-message"><pre>' + data.message + '</pre></div>'
+      ));
+    }
+
   });
 
 });

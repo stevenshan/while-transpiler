@@ -82,15 +82,15 @@ def main():
     if args.gcc or args.exec:
         output_file = "a.out" if args.output is None else args.output
 
-        status = transpiler_utils.c_compile(parse_result, output_file)
+        status, stdout = transpiler_utils.c_compile(parse_result, output_file)
 
         if status == 0 and args.exec:
-            transpiler_utils.exec_file(f"./{output_file}")
+            transpiler_utils.exec_file(f"./{output_file}", timeout=3)
 
     else:
         output_file = "out.c" if args.output is None else args.output
         with open(output_file, "w") as file_obj:
-            transpile_parsed(parse_result, file_obj)
+            transpile_c.transpile_parsed(parse_result, file_obj)
 
 if __name__ == "__main__":
     main()

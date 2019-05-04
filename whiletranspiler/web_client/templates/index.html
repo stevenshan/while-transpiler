@@ -35,7 +35,8 @@
 
     <div class="row" id="sub-nav">
       <div class="col s6" id="editor-menu">
-        <a class="material-icons" onclick="save()">save</a>
+        <a class="material-icons" onclick="save()" tag="Save">save</a>
+        <a class="material-icons" onclick="execute()">play_arrow</a>
       </div>
       <div class="col s6">
         <ul class="tabs">
@@ -86,6 +87,15 @@
           <div class="indeterminate"></div>
         </div>
         <div id="fileselect-modal-content"></div>
+      </div>
+    </div>
+
+    <div id="execution-modal" class="modal">
+      <div class="modal-content">
+        <div id="execution-modal-content"></div>
+        <div class="progress">
+          <div class="indeterminate"></div>
+        </div>
       </div>
     </div>
 
