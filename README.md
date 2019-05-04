@@ -11,6 +11,18 @@ Transpiler written in Python to convert WHILE source code to C.
 
 ## Usage
 
+### Web App
+
+The web interface for the transpiler can be started by running
+```
+whiletranspiler --web
+```
+in the directory with WHILE source code files that you want to edit. This starts a web server on port 5000.
+
+![Web App Screenshot](docs/web_interface.png)
+
+### Command Line
+
 To compile WHILE source code file named `test.w`:
 ```
 whiletranspiler test.w
@@ -19,7 +31,7 @@ The default output C source code file is `out.c`. This can be changed with the `
 
 To compile the transpiled C source code, include the `--gcc` flag. To execute the program, include the `--exec` flag.
 
-### Output Options
+#### Output Options
 
 Command line flag options to control the output:
 
