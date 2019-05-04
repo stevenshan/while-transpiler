@@ -165,7 +165,6 @@ $(function() {
       M.toast({html: "Failed to save file."});
     } else {
       // no error
-      M.toast({html: "Successfully saved file."});
     }
   });
 

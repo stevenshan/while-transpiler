@@ -1,0 +1,2 @@
+recursive-include whiletranspiler/web_client/templates *
+recursive-include whiletranspiler/web_client/static *

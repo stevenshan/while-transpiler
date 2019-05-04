@@ -18,4 +18,10 @@ setuptools.setup(
             'whiletranspiler=whiletranspiler:main',
         ],
     },
+    install_requires=[
+        "Flask",
+        "python-socketio",
+    ],
+    include_package_data=True,
+    zip_safe=False,
 )
