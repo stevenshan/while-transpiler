@@ -1,0 +1,169 @@
+body, html {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    height: 100%;
+}
+
+.row {
+    margin-bottom: 0px;
+}
+
+#header-nav {
+    padding: 0px 15px;
+    position: relative;
+}
+
+#filename-text {
+    color: #ffffff;
+    font-size: 16px;
+    cursor: text;
+}
+
+#filename-input {
+    width: 300px;
+    color: #ffffff;
+    font-size: 16px;
+    pointer-events: none;
+    opacity: 0;
+    z-index: -1;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    margin: auto;
+    border: 1px solid #e0e0e0;
+    background: rgb(255, 255, 255, 0.08);
+    padding: 0px 10px;
+    box-sizing: border-box;
+    margin-left: -10px;
+}
+
+#filename-input:focus {
+    pointer-events: auto;
+    opacity: 1;
+    z-index: 1;
+}
+
+#filename-input:focus + #filename-text {
+    display: none;
+}
+
+#sub-nav {
+    background: #ffffff;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+    width: 100%;
+    z-index: 1000;
+}
+
+#sub-nav > .col {
+    padding: 0px;
+}
+
+#sub-nav .tab a {
+    background-color: transparent;
+}
+
+main {
+    display: flex;
+    flex-flow: column;
+    flex-grow: 1;
+}
+
+main > .row {
+    display: flex;
+    flex-grow: 1;
+    width: 100%;
+}
+
+main > .row > .col {
+    flex-grow: 1;
+    padding: 0px;
+}
+
+main > .row > .col:first-child {
+    border-right: 3px solid #cccccc;
+}
+
+#fileselect-modal-content a {
+    display: block;
+    cursor: pointer;
+    padding: 15px;
+    transition: background 0.2s;
+    font-size: 16px;
+}
+
+#fileselect-modal-content a:hover {
+    background: rgb(0, 0, 0, 0.05);
+}
+
+#editor-column {
+    display: flex;
+    flex-direction: column;
+}
+
+#editor-menu {
+    height: 48px;
+    padding: 0px 15px !important;
+}
+
+#editor-menu a {
+    line-height: 48px;
+    display: inline;
+    cursor: pointer;
+}
+
+.code-editor {
+    height: 100%;
+    font-size: 16px;
+}
+
+#results-tabs {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#results-tabs .tab-content {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    flex-grow: 1;
+    padding: 0px;
+}
+
+#results-tabs .tab-content .progress {
+    display: none;
+    position: absolute;
+    width: 90%;
+    left: 50%;
+    margin-left: -45%;
+}
+
+#results-tabs .tab-content.loading .progress {
+    display: block;
+}
+
+#results-tabs .tab-content.error {
+    opacity: 0.6;
+}
+
+#results-tabs .tab-content.error:after {
+    position: absolute;
+    display: block;
+    content: "Please fix errors.";
+    width: 200px;
+    height: 30px;
+    line-height: 30px;
+    color: #ffffff;
+    box-sizing: content-box;
+    padding: 20px;
+    background: #b71c1c;
+    text-align: center;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 1;
+    margin: auto;
+}
+

@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+    <link href="/static/css/materialize.min.css" rel="stylesheet">
+    <link href="/static/css/general.css" rel="stylesheet">
+
+    <script src="/static/js/jquery-3.4.1.min.js"></script>
+    <script src="/static/js/materialize.min.js"></script>
+    <script src="/static/js/socket.io.js"></script>
+    <script src="/static/js/ace.js"></script>
+    <script src="/static/js/utils.js"></script>
+    <script src="/static/js/general.js"></script>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <div class="nav-wrapper" id="header-nav">
+          <ul class="left">
+            <li>
+              <a href="#fileselect-modal" class="modal-trigger">
+                <i class="material-icons">attachment</i>
+              </a>
+            </li>
+
+            <li style="padding-left: 15px">
+              <input type="text" id="filename-input" value="Untitled file">
+              <label id="filename-text" for="filename-input"></label>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <div class="row" id="sub-nav">
+      <div class="col s6" id="editor-menu">
+        <a class="material-icons" onclick="save()">save</a>
+      </div>
+      <div class="col s6">
+        <ul class="tabs">
+          <li class="tab col s3">
+            <a href="#c-code-tab">C Code</a>
+          </li>
+          <li class="tab col s3">
+            <a href="#ast-tab">AST</a>
+          </li>
+          <li class="tab col s3">
+            <a href="#tokens-tab">Tokens</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <main>
+      <div class="row">
+        <div class="col s6" id="editor-column">
+          <div id="editor" class="code-editor"></div>
+        </div>
+        <div class="row col s6" id="results-tabs">
+          <div id="c-code-tab" class="tab-content col s12">
+            <div class="progress">
+              <div class="indeterminate"></div>
+            </div>
+            <div id="c-code-editor" class="tab-body code-editor"></div>
+          </div>
+          <div id="ast-tab" class="tab-content col s12">
+            <div class="progress">
+              <div class="indeterminate"></div>
+            </div>
+            <div id="ast-editor" class="tab-body code-editor"></div>
+          </div>
+          <div id="tokens-tab" class="tab-content col s12">
+            <div class="progress">
+              <div class="indeterminate"></div>
+            </div>
+            <div id="tokens-editor" class="tab-body code-editor"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="fileselect-modal" class="modal">
+      <div class="modal-content">
+        <div class="progress">
+          <div class="indeterminate"></div>
+        </div>
+        <div id="fileselect-modal-content"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

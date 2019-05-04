@@ -5,39 +5,51 @@ from .transpiler import (
     transpile_c,
     utils as transpiler_utils,
 )
+from . import web_client
 
 def main():
     argparser = argparse.ArgumentParser(
         description='Transpile WHILE source code to C'
     )
 
-    argparser.add_argument('file', type=str,
-                        help='Source code file to transpile.')
+    argparser.add_argument('file', type=str, nargs='?',
+            help='Source code file to transpile.')
+
+    argparser.add_argument('-w', '--web', action='store_true',
+            help='Run web interface.')
 
     argparser.add_argument('-o', '--output', type=str,
-                        help='Output file.')
+            help='Output file.')
 
     argparser.add_argument('--token-stream', action='store_true',
-                        help='Print stream of parsed tokens.')
+            help='Print stream of parsed tokens.')
 
     argparser.add_argument('--parse-tree', action='store_true',
-                        help='Print parse tree.')
+            help='Print parse tree.')
 
     argparser.add_argument('--ast', action='store_true',
-                        help='Print AST tree.')
+            help='Print AST tree.')
 
     argparser.add_argument('--stdout', action='store_true',
-                        help='Prints the transpiled C source code to STDOUT '
-                             'instead of to output file.')
+            help='Prints the transpiled C source code to STDOUT '
+                 'instead of to output file.')
 
     argparser.add_argument('--gcc', action='store_true',
-                        help='Compiles transpiled C source code using gcc.')
+            help='Compiles transpiled C source code using gcc.')
 
     argparser.add_argument('--exec', action='store_true',
-                        help='Execute compiled program. Implicitly enables '
-                             '--gcc flag.')
+            help='Execute compiled program. Implicitly enables '
+                 '--gcc flag.')
 
     args = argparser.parse_args()
+
+    if args.web:
+        web_client.app.run()
+        exit(0)
+
+    if args.file is None:
+        print("Error: missing required positional argument: file")
+        exit(1)
 
     with open(args.file, "r") as file_obj:
         token_stream = lexer.get_token_stream(file_obj)
@@ -45,7 +57,9 @@ def main():
         if args.token_stream:
             try:
                 while True:
-                    print("Line %-4d: %s" % next(token_stream))
+                    tk = next(token_stream)
+                    print_str = tk.line_range[0], tk
+                    print("Line %-4d: %s" % print_str)
             except StopIteration:
                 exit(0)
 
