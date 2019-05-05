@@ -31,6 +31,8 @@ def c_compile(parse_result, output_file, capture_output=False):
     if process.stdout is not None:
         stdout = decode_str_bytes(process.stdout)
 
+    os.close(rfd)
+
     return process.returncode, stdout
 
 def exec_file(filename, capture_output=False, timeout=None):
