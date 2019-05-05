@@ -1,17 +1,14 @@
-original_n = 6;
-original_k = 4;
-
-n = original_n;
-k = original_k;
+n = 6;
+k = 4;
 numerator = 1;
 denominator = 1; 
 
-k = original_n - original_k;
+n_minus_k = n - k;
 
-while (k > 0) {
-    denominator = k * denominator;
+while (n_minus_k > 0) {
+    denominator = n_minus_k * denominator;
     
-    k = k - 1;
+    n_minus_k = n_minus_k - 1;
 } // should calculate the denominator of n permute k 
 
 

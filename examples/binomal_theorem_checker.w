@@ -13,7 +13,6 @@ while (n > 0){
     
     n = n - 1;
 }
-print(xy_sum);
 
 while (original_n >= original_k) {
     n = original_n;
@@ -41,7 +40,6 @@ while (original_n >= original_k) {
     } // should calculate the numerator of n choose k 
 
     choose = numerator/denominator; // n choose k
-    print(choose);
 
     x_pow = 1;
     y_pow = 1;
@@ -63,13 +61,10 @@ while (original_n >= original_k) {
 
     // x_pow should be x^(n-k)
     // y_pow should be y^k
-    print(choose * x_pow * y_pow);
     sum = sum + (choose * x_pow * y_pow);
 
     original_k = original_k + 1;
 }
-
-print(sum);
 
 if (xy_sum == sum){
     print(1); // should be true this is the binomal theorem

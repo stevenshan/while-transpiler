@@ -1,8 +1,5 @@
-original_n = 6;
-original_k = 4;
-
-n = original_n;
-k = original_k;
+n = 6;
+k = 4;
 numerator = 1;
 denominator = 1; 
 
@@ -13,7 +10,7 @@ while (k > 0) {
     k = k - 1;
 } 
 
-n_minus_k = original_n - original_k;
+n_minus_k = 2;
 
 while (n_minus_k > 0) {
     denominator = n_minus_k * denominator;
@@ -38,8 +35,8 @@ y = 5;
 x_pow = 1;
 y_pow = 1;
 
-n_minus_k = original_n - original_k;
-k = original_k;
+n_minus_k = 2;
+k = 4;
 
 while ( n_minus_k > 0 or k > 0) {
     if (n_minus_k != 0) {
