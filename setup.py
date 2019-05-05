@@ -1,4 +1,8 @@
 import setuptools
+import sys
+
+if sys.version_info < (3,6):
+    sys.exit("Requires Python version 3.6 or higher.")
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -24,4 +28,5 @@ setuptools.setup(
     ],
     include_package_data=True,
     zip_safe=False,
+    python_requires='>3.6'
 )
