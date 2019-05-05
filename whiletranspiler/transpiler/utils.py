@@ -4,7 +4,7 @@ import subprocess
 from .transpile_c import transpile_parsed
 
 def decode_str_bytes(raw_bytes):
-    return "".join((chr(x) for x in raw_bytes))
+    return "".join((chr(x) for x in raw_bytes if x < 128))
 
 def c_compile(parse_result, output_file, capture_output=False):
     """
