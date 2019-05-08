@@ -163,6 +163,7 @@ main > .row > .col:first-child {
     overflow: hidden;
     flex-grow: 1;
     padding: 0px;
+    height: 100%;
 }
 
 #results-tabs .tab-content .progress {
