@@ -6,27 +6,26 @@ import io
 import subprocess
 
 sio = socketio.Server(async_mode='threading')
-socket_response = socket_utils.socket_decorator(sio)
+socket_action = socket_utils.socket_decorator(sio)
 
-@sio.on('connect')
-@socket_response
+class triggers:
+    ast = []
+
+@socket_action('connect')
 def connect(emit, environ):
     print("connected")
 
-@sio.on('disconnect')
-@socket_response
+@socket_action('disconnect')
 def disconnect(emit):
     print("disconnected")
 
-@sio.on("filelisting")
-@socket_response
+@socket_action("filelisting")
 def filelisting(emit, data=None):
     files = [f for f in os.listdir(".")
             if os.path.isfile(f) and not f.startswith(".")]
     emit("filelisting", files)
 
-@sio.on("loadfile")
-@socket_response
+@socket_action("loadfile")
 def loadfile(emit, filename=None):
     found = False
     if filename is not None:
@@ -53,8 +52,7 @@ def loadfile(emit, filename=None):
             })
             return
 
-@sio.on("save")
-@socket_response
+@socket_action("save")
 def save(emit, data=None):
     def error():
         emit("savestatus", True);
@@ -74,8 +72,7 @@ def save(emit, data=None):
     else:
         success()
 
-@sio.on("build")
-@socket_response
+@socket_action("build")
 def build(emit, data=None):
     _error_data = {"error": True}
 
@@ -135,8 +132,12 @@ def build(emit, data=None):
                     "error": False,
                 })
 
-            ast_string = parse_result.ast.print(return_str=True)
+            ast = parse_result.ast
+            ast_string = ast.print(return_str=True)
             success("transpiler_ast", {"text": ast_string})
+
+            for trigger_action in triggers.ast:
+                trigger_action(ast)
 
             c_source_buffer = io.StringIO()
             transpiler.transpile_c.transpile_parsed(
@@ -174,6 +175,7 @@ def build(emit, data=None):
 
                 emit_execution({"signal": "end"})
 
-    except:
+    except ValueError as e:
+        print(e)
         error()
 

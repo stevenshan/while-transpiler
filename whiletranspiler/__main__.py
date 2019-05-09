@@ -6,6 +6,7 @@ from .transpiler import (
     utils as transpiler_utils,
 )
 from . import web_client
+import importlib
 import sys
 
 def main():
@@ -42,10 +43,29 @@ def main():
             help='Execute compiled program. Implicitly enables '
                  '--gcc flag.')
 
+    argparser.add_argument('--plugin', type=str, action="append",
+            help='Python module to load as plugin.')
+
     args = argparser.parse_args()
 
+    plugins = []
+    if args.plugin is not None:
+        for plugin_name in args.plugin:
+            try:
+                mod = importlib.import_module(plugin_name)
+            except ModuleNotFoundError:
+                print(f"Couldn't import plugin module '{plugin_name}'.")
+                exit(1)
+
+            if not hasattr(mod, "PLUGIN_SETTINGS"):
+                print(f"Plugin module '{plugin_name}' "
+                      "missing PLUGIN_SETTINGS attribute.")
+                exit(1)
+
+            plugins.append(mod)
+
     if args.web:
-        web_client.app.run()
+        web_client.run(plugins=plugins)
         exit(0)
 
     if args.file is None:

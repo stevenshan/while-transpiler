@@ -57,6 +57,8 @@ body, html {
     box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
     width: 100%;
     z-index: 1000;
+    height: 48px;
+    overflow: hidden;
 }
 
 #sub-nav > .col {
@@ -225,5 +227,14 @@ main > .row > .col:first-child {
 #execution-modal .execution-message pre {
     white-space: pre-wrap;
     font-size: 15px;
+}
+
+#nav-tabs {
+    height: 80px; /* arbitrary large number to push scrollbar out of view */
+}
+
+#nav-tabs .indicator {
+    top: 45px;
+    height: 3px;
 }
 

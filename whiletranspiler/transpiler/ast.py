@@ -59,6 +59,9 @@ class ASTSymbol(TokenMetadata):
         else:
             self.value = parent_instance
 
+    def __hash__(self):
+        return hash(self.value)
+
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.value == other.value

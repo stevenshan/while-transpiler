@@ -1,16 +1,23 @@
 def socket_decorator(sio):
-    def socket_response(func):
-        """
-        Decorator to wrap socket actions
-        """
+    """
+    Wrapper for `sio.on` to define socket actions.
+    """
 
-        def _func(sid, *args, **kwargs):
-            def emit(*_args, **_kwargs):
-                _kwargs["room"] = sid
-                sio.emit(*_args, **_kwargs)
+    def socket_on(*args, **kwargs):
+        def socket_response(func):
+            """
+            Decorator to wrap socket actions
+            """
 
-            return func(emit, *args, **kwargs)
+            def _func(sid, *args, **kwargs):
+                def emit(*_args, **_kwargs):
+                    _kwargs["room"] = sid
+                    sio.emit(*_args, **_kwargs)
 
-        return _func
+                return func(emit, *args, **kwargs)
 
-    return socket_response
+            return sio.on(*args, **kwargs)(_func)
+
+        return socket_response
+
+    return socket_on

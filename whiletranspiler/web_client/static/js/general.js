@@ -298,6 +298,12 @@ $(function() {
 
   });
 
+  if (typeof plugins !== "undefined" && plugins !== undefined) {
+    plugins.forEach(function(plugin) {
+      plugin(socket);
+    });
+  }
+
 });
 
 
