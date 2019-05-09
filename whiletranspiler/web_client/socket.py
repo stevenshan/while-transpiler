@@ -137,7 +137,7 @@ def build(emit, data=None):
             success("transpiler_ast", {"text": ast_string})
 
             for trigger_action in triggers.ast:
-                trigger_action(ast)
+                trigger_action(emit, ast)
 
             c_source_buffer = io.StringIO()
             transpiler.transpile_c.transpile_parsed(
