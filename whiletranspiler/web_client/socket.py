@@ -175,7 +175,7 @@ def build(emit, data=None):
 
                 emit_execution({"signal": "end"})
 
-    except ValueError as e:
+    except Exception as e:
         print(e)
         error()
 

@@ -192,62 +192,34 @@ $(function() {
     }
   });
 
-  socket.on("transpiler_c_code", function(data) {
-    if (parse_req_id !== data.req_id) {
-      return;
-    }
+  function transpiler_tab_event(tab_selector, editor) {
+    return function(data) {
+      if (parse_req_id !== data.req_id) {
+        return;
+      }
 
-    var $tab = $("#c-code-tab");
+      var $tab = $(tab_selector);
 
-    $tab
-      .removeClass("loading")
-      .toggleClass("error", data.error);
+      $tab
+        .removeClass("loading")
+        .toggleClass("error", data.error);
 
-    if (!data.error) {
-      set_editor_value(c_code_editor, data.text || "");
-    }
+      if (!data.error) {
+        set_editor_value(editor, data.text || "");
+      }
 
-    $tab.find(".tab-body").removeClass("staging");
+      $tab.find(".tab-body").removeClass("staging");
+    };
+  }
 
-  });
+  socket.on("transpiler_c_code",
+      transpiler_tab_event("#c-code-tab", c_code_editor));
 
-  socket.on("transpiler_ast", function(data) {
-    if (parse_req_id !== data.req_id) {
-      return;
-    }
+  socket.on("transpiler_ast",
+    transpiler_tab_event("#ast-tab", ast_editor));
 
-    var $tab = $("#ast-tab");
-
-    $tab
-      .removeClass("loading")
-      .toggleClass("error", data.error);
-
-    if (!data.error) {
-      set_editor_value(ast_editor, data.text || "");
-    }
-
-    $tab.find(".tab-body").removeClass("staging");
-
-  });
-
-  socket.on("transpiler_tokens", function(data) {
-    if (parse_req_id !== data.req_id) {
-      return;
-    }
-
-    var $tab = $("#tokens-tab");
-
-    $tab
-      .removeClass("loading")
-      .toggleClass("error", data.error);
-
-    if (!data.error) {
-      set_editor_value(tokens_editor, data.text || "");
-    }
-
-    $tab.find(".tab-body").removeClass("staging");
-
-  });
+  socket.on("transpiler_tokens",
+    transpiler_tab_event("#tokens-tab", tokens_editor));
 
   socket.on("parsestatus", function(data) {
     if (editor_highlight_marker !== undefined) {
