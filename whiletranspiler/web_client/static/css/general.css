@@ -239,3 +239,12 @@ main > .row > .col:first-child {
     height: 3px;
 }
 
+.plugin-tab-content {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow-y: auto;
+}
+
