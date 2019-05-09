@@ -4,6 +4,7 @@ Code for converting AST into C source code
 
 from .ast import AST
 from .config import INDENT
+import io
 
 BINOP_MAP = [
     (AST.AND, "&&"),
@@ -23,24 +24,18 @@ BINOP_MAP = [
     (AST.MOD, "%"),
 ]
 
-def transpile_parsed(parsed, file_obj):
-    """
-    Wrapper to convert result of parsing to C code.
-    """
+class _OptionsClosure:
+    def __init__(self):
+        self.outer_paren_grouping = False
+        self.indent = 0
 
-    class _OptionsClosure:
-        def __init__(self):
-            self.outer_paren_grouping = False
-            self.indent = 0
+def _transpile_ast(ast, _write, options_closure=None):
 
-    options_closure = _OptionsClosure()
+    if options_closure is None:
+        options_closure = _OptionsClosure()
 
-    def write(string, begin_line=False):
-        if begin_line:
-            level = options_closure.indent - 1
-            file_obj.write(f"{INDENT * level}{string}")
-        else:
-            file_obj.write(string)
+    def write(*args, **kwargs):
+        return _write(options_closure, *args, **kwargs)
 
     def generate_output(ast_node):
         """
@@ -128,6 +123,34 @@ def transpile_parsed(parsed, file_obj):
 
         options_closure.indent -= 1
 
+    generate_output(ast)
+
+def _writer_generator(file_obj):
+    """
+    Returns function that that `transpile_ast` can use to store results
+    """
+
+    def _write(options_closure, string, begin_line=False):
+        if begin_line:
+            level = options_closure.indent - 1
+            file_obj.write(f"{INDENT * level}{string}")
+        else:
+            file_obj.write(string)
+
+    return _write
+
+
+def transpile_parsed(parsed, file_obj):
+    """
+    Wrapper to convert result of parsing to C code.
+    """
+
+    options_closure = _OptionsClosure()
+
+    _write = _writer_generator(file_obj)
+    def write(*args, **kwargs):
+        return _write(options_closure, *args, **kwargs)
+
     write("#include <stdio.h>\n"
           "int main() {\n", begin_line=True)
 
@@ -135,8 +158,20 @@ def transpile_parsed(parsed, file_obj):
     if len(parsed.variable_names) > 0:
         write(f"{INDENT}int {', '.join(parsed.variable_names)};\n",
                 begin_line=True)
-    generate_output(parsed.ast)
+    _transpile_ast(parsed.ast, _write, options_closure)
     options_closure.indent -= 1
 
     write("}", begin_line=True)
+
+def transpile_ast_to_string(ast):
+    """
+    Transpiles AST and returns the transpiled source code as a string
+    """
+
+    buff = io.StringIO()
+
+    _write = _writer_generator(buff)
+    _transpile_ast(ast, _write)
+
+    return buff.getvalue()
 
