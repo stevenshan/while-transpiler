@@ -86,6 +86,9 @@ def build(emit, data=None):
         for action in remaining_actions:
             emit(action, _error_data)
 
+        for trigger_action in triggers.ast:
+            trigger_action(emit, None)
+
     def success(action, new_data):
         assert action in remaining_actions
         remaining_actions.remove(action)
@@ -178,4 +181,5 @@ def build(emit, data=None):
     except Exception as e:
         print(e)
         error()
+        return
 
