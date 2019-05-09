@@ -46,7 +46,7 @@
         <ul id="nav-tabs" class="tabs tabs-fixed-width">
           {% for name, _ in plugin_windows %}
             <li class="tab col s3">
-              <a href="#{{ name|lower }}-tab">{{ name }}</a>
+              <a href="#plugin-{{ name|lower }}-tab">{{ name }}</a>
             </li>
           {% endfor %}
           <li class="tab col s3">
@@ -70,7 +70,7 @@
         <div class="row col s6" id="results-tabs">
 
           {% for name, content in plugin_windows %}
-          <div id="{{name|lower}}-tab" class="tab-content col s12">
+          <div id="plugin-{{name|lower}}-tab" class="tab-content col s12">
             <div class="progress">
               <div class="indeterminate"></div>
             </div>
