@@ -44,6 +44,12 @@ Command line flag options to control the output:
 - Display transpiled C source code
     - `--stdout`
 
+### Plugins
+
+The transpiler has a plugin interface so other Python modules can display data in the web interface or modify the data output by the transpiler.
+
+Make sure the plugin is installed or in PYTHONPATH, then run `whiletranspiler` with the extra command line arguments `--plugin [plugin name]`.
+
 ## Testing
 
 Run `pytest` to run test cases.
