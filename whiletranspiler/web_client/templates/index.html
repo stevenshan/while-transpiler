@@ -44,20 +44,20 @@
       </div>
       <div class="col s6">
         <ul id="nav-tabs" class="tabs tabs-fixed-width">
-          {% for name, _ in plugin_windows %}
-            <li class="tab col s3">
-              <a href="#plugin-{{ name|lower }}-tab">{{ name }}</a>
-            </li>
-          {% endfor %}
           <li class="tab col s3">
-            <a href="#c-code-tab">C Code</a>
+            <a href="#tokens-tab">Tokens</a>
           </li>
           <li class="tab col s3">
             <a href="#ast-tab">AST</a>
           </li>
           <li class="tab col s3">
-            <a href="#tokens-tab">Tokens</a>
+            <a href="#c-code-tab">C Code</a>
           </li>
+          {% for name, _ in plugin_windows %}
+            <li class="tab col s3">
+              <a href="#plugin-{{ name|lower }}-tab">{{ name }}</a>
+            </li>
+          {% endfor %}
         </ul>
       </div>
     </div>
