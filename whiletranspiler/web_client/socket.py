@@ -106,77 +106,81 @@ def build(emit, data=None):
 
     try:
         with open(data["filename"], "r") as file_obj:
-            token_stream = transpiler.lexer.get_token_stream(file_obj)
+            entire_code = file_obj.read()
 
-            tokens = []
-            try:
-                while True:
-                    tokens.append(next(token_stream))
-            except StopIteration:
-                pass
+        file_obj = io.StringIO(entire_code)
 
-            token_string = "\n".join(
-                    ("Line %-4d: %s" % (tk.line_range[0], tk)
-                    for tk in tokens))
-            success("transpiler_tokens", {"text": token_string})
+        token_stream = transpiler.lexer.get_token_stream(file_obj)
 
-            try:
-                parse_result = transpiler.parser.parse((x for x in tokens))
-            except transpiler.parser.ParseError as err:
-                error()
-                if len(err.args) > 0:
-                    emit("parsestatus", {
-                        "line": err.args[0],
-                        "error": True,
-                    })
-                return
-            else:
+        tokens = []
+        try:
+            while True:
+                tokens.append(next(token_stream))
+        except StopIteration:
+            pass
+
+        token_string = "\n".join(
+                ("Line %-4d: %s" % (tk.line_range[0], tk)
+                for tk in tokens))
+        success("transpiler_tokens", {"text": token_string})
+
+        try:
+            parse_result = transpiler.parser.parse((x for x in tokens))
+        except transpiler.parser.ParseError as err:
+            error()
+            if len(err.args) > 0:
                 emit("parsestatus", {
-                    "error": False,
+                    "line": err.args[0],
+                    "error": True,
                 })
+            return
+        else:
+            emit("parsestatus", {
+                "error": False,
+            })
 
-            ast = parse_result.ast
-            ast_string = ast.print(return_str=True)
-            success("transpiler_ast", {"text": ast_string})
+        ast = parse_result.ast
+        ast_string = ast.print(return_str=True)
+        success("transpiler_ast", {"text": ast_string})
 
-            for trigger_action in triggers.ast:
-                trigger_action(emit, ast)
+        for trigger_action in triggers.ast:
+            trigger_action(emit, ast, entire_code=entire_code)
 
-            c_source_buffer = io.StringIO()
-            transpiler.transpile_c.transpile_parsed(
-                    parse_result, c_source_buffer)
-            success("transpiler_c_code", {"text": c_source_buffer.getvalue()})
+        c_source_buffer = io.StringIO()
+        transpiler.transpile_c.transpile_parsed(
+                parse_result, c_source_buffer)
+        success("transpiler_c_code", {"text": c_source_buffer.getvalue()})
 
-            if "execute" in data and data["execute"]:
-                def emit_execution(new_data):
-                    _data = dict(data)
-                    _data.update(new_data)
-                    _data["error"] = False
-                    emit("execution", _data)
+        if "execute" in data and data["execute"]:
+            def emit_execution(new_data):
+                _data = dict(data)
+                _data.update(new_data)
+                _data["error"] = False
+                emit("execution", _data)
 
-                emit_execution({"signal": "start"})
-                emit_execution({"message": "Compiling..."})
+            emit_execution({"signal": "start"})
+            emit_execution({"message": "Compiling..."})
 
-                output_file = "a.out"
-                status, stdout = transpiler.utils.c_compile(
-                        parse_result, output_file, capture_output=True)
-                emit_execution({"message": f"{stdout}"})
+            output_file = "a.out"
+            status, stdout = transpiler.utils.c_compile(
+                    parse_result, output_file, capture_output=True)
+            emit_execution({"message": f"{stdout}"})
 
-                if status == 0:
-                    try:
-                        emit_execution({"message": "Running..."})
-                        output = transpiler.utils.exec_file(
-                            f"./{output_file}",
-                            timeout=3,
-                            capture_output=True
-                        )
-                    except subprocess.TimeoutExpired:
-                        emit_execution(
-                                {"message": "Error: execution timed out."})
-                    else:
-                        emit_execution({"message": f"{output}"})
+            if status == 0:
+                try:
+                    emit_execution({"message": "Running..."})
+                    output = transpiler.utils.exec_file(
+                        f"./{output_file}",
+                        timeout=3,
+                        capture_output=True
+                    )
+                except subprocess.TimeoutExpired:
+                    emit_execution(
+                            {"message": "Error: execution timed out."})
+                else:
+                    emit_execution({"message": f"{output}"})
 
-                emit_execution({"signal": "end"})
+            emit_execution({"signal": "end"})
 
     except Exception as e:
         print(e)
